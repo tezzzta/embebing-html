@@ -58,8 +58,8 @@ ul{ list-style:none; }
     overflow: hidden;
     color: var(--white);
     background:
-      radial-gradient(ellipse 900px 500px at 30% 15%, rgba(244,123,32,0.10), transparent 60%),
-      linear-gradient(180deg, #0a1420 0%, #0c1826 35%, #0d1b2a 60%, #060d15 100%);
+      linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.65) 65%, rgba(0,0,0,0.92) 92%, #000 100%) top / 100% 100vh no-repeat,
+      url('https://sencia.com.co/wp-content/uploads/2026/07/CDEC-F2-BDP-XXX-XX-XX-ARQ-VS-000003-1.jpg-scaled.webp') top center / 100% 100vh no-repeat #000;
   }
 
   .hero .skyline{
@@ -79,7 +79,7 @@ ul{ list-style:none; }
       80% 20%, 86% 20%, 86% 66%, 92% 66%, 92% 48%, 96% 48%, 96% 72%,
       100% 72%, 100% 100%
     );
-    opacity: 0.5;
+    opacity: 0.2;
   }
 
   .hero .grain-overlay{
@@ -100,7 +100,13 @@ ul{ list-style:none; }
   .hero .brand{
     display:flex;
     align-items:center;
-    gap: 14px;
+  }
+
+  .hero .brand-logo{
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   .hero .gptw-badge{
@@ -122,8 +128,17 @@ ul{ list-style:none; }
   }
 
   .hero .brand-mark{
-    width: 26px; height: 26px;
-    opacity: 0.9;
+    display:flex;
+    align-items:center;
+  }
+
+  .hero .brand-mark-img{
+    margin-left: 8px;
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    border-radius: 10px;
+    flex-shrink: 0;
   }
 
   .hero .menu-btn{
@@ -194,7 +209,7 @@ ul{ list-style:none; }
 
   .hero .search-hint{
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    color: rgb(255, 253, 253);
     margin-top: 14px;
   }
 
@@ -215,10 +230,10 @@ ul{ list-style:none; }
   }
 
   .hero .pill{
-    background: linear-gradient(135deg, var(--orange-soft), var(--orange));
-    color: #1a0e02;
+    background: #FF7612;
+    color: #fcfaf8;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 400;
     padding: 9px 18px;
     border-radius: 999px;
     white-space: nowrap;
@@ -310,7 +325,7 @@ ul{ list-style:none; }
 
   .hero .bottom-copy h2{
     font-size: 26px;
-    font-weight: 600;
+    font-weight: 400;
     line-height: 1.25;
     margin-bottom: 16px;
   }
@@ -592,6 +607,12 @@ ul{ list-style:none; }
     line-height: 1.25;
     margin-bottom: 18px;
     letter-spacing: -0.3px;
+    color: rgba(22,33,44,0.45);
+  }
+
+  .section .top-copy h1 .dark{
+    color: var(--ink);
+    font-weight: 700;
   }
 
   .section .top-copy p{
@@ -746,6 +767,15 @@ ul{ list-style:none; }
     repeating-linear-gradient(-60deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 22px),
     linear-gradient(180deg, #3b5c47 0%, #1c2b20 55%, #0c130d 100%);
 }
+
+  .section .big-photo__img{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 
   .section .stat-card{
     border: 1px solid var(--line);
@@ -954,7 +984,7 @@ ul{ list-style:none; }
 
   .transparencia .vision-header h2{
     font-size: 26px;
-    font-weight: 500;
+    font-weight: 200;
     line-height: 1.35;
   }
 
@@ -1075,14 +1105,14 @@ ul{ list-style:none; }
 
 .hero-proyecto__pill {
   flex-shrink: 0;
-  padding: 8px 16px;
+  padding: 5px 16px;
   border-radius: var(--radius-pill);
   background: rgba(255,255,255,0.14);
   backdrop-filter: blur(6px);
   color: var(--color-white);
   font-size: 13px;
-  font-weight: 500;
-  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: 100;
+  border: 2px solid rgba(255,255,255,0.5);
   transition: background 0.25s ease, color 0.25s ease;
   white-space: nowrap;
 }
@@ -1104,7 +1134,7 @@ ul{ list-style:none; }
 
 .hero-proyecto__title {
   font-size: clamp(30px, 5vw, 48px);
-  font-weight: 700;
+  font-weight: 300;
   margin: 0 0 6px;
   line-height: 1.1;
 }
@@ -1118,7 +1148,7 @@ ul{ list-style:none; }
 
 .hero-proyecto__desc {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.2;
   opacity: 0.85;
   margin: 0 0 24px;
   max-width: 560px;
@@ -1202,14 +1232,14 @@ ul{ list-style:none; }
 
 .experiencias__title {
   font-size: clamp(24px, 3vw, 34px);
-  font-weight: 700;
+  font-weight: 300;
   margin: 8px 0 10px;
   color: var(--color-navy);
 }
 
 .experiencias__desc {
   font-size: 14px;
-  color: var(--color-gray-text);
+  color: #000;
   max-width: 480px;
   margin: 0;
   line-height: 1.5;
@@ -1342,10 +1372,11 @@ ul{ list-style:none; }
   bottom: 128px;
   left: 16px;
   z-index: 2;
-  background: rgba(255,255,255,0.95);
-  color: var(--color-navy);
-  border-radius: 10px;
-  padding: 8px 10px;
+  background: transparent;
+  color: #fff;
+   border: 2px solid #ffffffa9;
+   border-radius: 4px;
+  padding: 8px 6px;
   text-align: center;
   line-height: 1.1;
 }
@@ -1353,13 +1384,13 @@ ul{ list-style:none; }
 .event-card__date-day {
   display: block;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .event-card__date-month {
   display: block;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.05em;
 }
 

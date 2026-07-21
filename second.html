@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClimaTech · Inventario de equipos (demo estática)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:       #F1F5FA;
+    --plate:       #FFFFFF;
+    --ink:         #0B2545;
+    --muted:       #5C7999;
+    --rule:        #D6E1EF;
+    --signal:      #1364DA;
+    --signal-deep: #0A3F8F;
+    --signal-wash: #E7F0FC;
+
+    --ok:      #0E7C66;
+    --warn:    #B7791F;
+    --down:    #C2410C;
+    --retired: #64748B;
+
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --cond: 'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --r: 3px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  /* ---- Etiquetas tipo placa: mayúsculas condensadas, como el rótulo
+         serigrafiado de una placa de datos técnicos ---- */
+  .lbl {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* =================== LOGIN =================== */
+  #login {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+
+  .login-plate {
+    width: 100%;
+    max-width: 380px;
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    padding: 36px 32px 32px;
+    position: relative;
+  }
+
+  .brand {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -.01em;
+    text-transform: uppercase;
+  }
+  .brand span { color: var(--signal); }
+
+  .brand-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    margin-bottom: 28px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field .lbl { display: block; margin-bottom: 5px; }
+
+  input[type=text], input[type=email], input[type=password], input[type=number],
+  input[type=date], select, textarea {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    transition: border-color .12s, box-shadow .12s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--signal);
+    box-shadow: 0 0 0 3px var(--signal-wash);
+  }
+  input.code, input[name=codigo_interno], input[name=num_serie] { font-family: var(--mono); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    font-weight: 500;
+    font-size: 13px;
+    transition: background .12s, border-color .12s;
+  }
+  .btn-primary { background: var(--signal); color: #fff; }
+  .btn-primary:hover { background: var(--signal-deep); }
+  .btn-ghost { background: transparent; border-color: var(--rule); color: var(--ink); }
+  .btn-ghost:hover { background: var(--paper); }
+  .btn-danger { background: transparent; border-color: #E9C0AE; color: var(--down); }
+  .btn-danger:hover { background: #FDF1EC; }
+  .btn-block { width: 100%; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .msg {
+    padding: 8px 10px;
+    border-radius: var(--r);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .msg-error { background: #FDF1EC; color: var(--down); border: 1px solid #F3D5C7; }
+
+  .hint {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .hint code { font-family: var(--mono); font-size: 11px; color: var(--ink); }
+
+  /* =================== APP =================== */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  #app.on { display: flex; }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 52px;
+    background: var(--plate);
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  header.top .brand { font-size: 17px; }
+  .who {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .who b { color: var(--ink); font-weight: 600; }
+  .rol-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--signal-wash);
+    color: var(--signal-deep);
+    border-radius: var(--r);
+  }
+  .link {
+    background: none;
+    border: none;
+    color: var(--signal);
+    font-size: 12px;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .shell { display: flex; flex: 1; min-height: 0; }
+
+  /* ---- Rail de filtros ---- */
+  aside.rail {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--plate);
+    border-right: 1px solid var(--rule);
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+  .rail h2 {
+    font-family: var(--cond);
+    font-size: 12px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .rail .field { margin-bottom: 13px; }
+
+  /* Los 4 estados son un conjunto cerrado del negocio, así que se listan
+     todos en vez de meterlos en un select: se ve de una qué hay. */
+  .states { display: flex; flex-direction: column; gap: 1px; }
+  .state-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 7px;
+    background: none;
+    border: none;
+    border-radius: var(--r);
+    text-align: left;
+    font-size: 13px;
+    color: var(--ink);
+    width: 100%;
+  }
+  .state-btn:hover { background: var(--paper); }
+  .state-btn[aria-pressed=true] { background: var(--signal-wash); font-weight: 600; }
+  .swatch {
+    width: 8px; height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+  .state-btn .n { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  .sw-Operativo             { background: var(--ok); }
+  .sw-En-mantenimiento      { background: var(--warn); }
+  .sw-Fuera-de-servicio     { background: var(--down); }
+  .sw-De-baja               { background: var(--retired); }
+  .sw-todos                 { background: var(--rule); }
+
+  /* ---- Panel principal ---- */
+  main.work { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 20px; gap: 14px; }
+
+  .work-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .work-head h1 { font-family: var(--cond); font-size: 22px; text-transform: uppercase; letter-spacing: .01em; }
+  .count { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .search { flex: 1; max-width: 300px; margin-left: auto; }
+  .search input { font-size: 13px; }
+
+  .table-wrap {
+    flex: 1;
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    overflow: auto;
+    min-height: 0;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--plate);
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    z-index: 1;
+  }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--paper); }
+  tbody tr[aria-selected=true] { background: var(--signal-wash); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .cell-code { font-family: var(--mono); font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .cell-name b { font-weight: 600; }
+  .cell-name small { display: block; color: var(--muted); font-size: 12px; }
+  .cell-loc { color: var(--muted); font-size: 12px; }
+
+  .state-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+
+  .row-acts { display: flex; gap: 4px; justify-content: flex-end; }
+  .icon-btn {
+    padding: 3px 7px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .icon-btn:hover { border-color: var(--rule); color: var(--ink); background: var(--plate); }
+  .icon-btn.del:hover { color: var(--down); border-color: #E9C0AE; }
+
+  .empty { padding: 56px 24px; text-align: center; }
+  .empty p { color: var(--muted); margin-bottom: 14px; }
+
+  .pager { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+  .pager span { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* =================== PLACA (detalle) =================== */
+  /* La firma del panel: el detalle se lee como la placa de datos remachada
+     que trae pegada cada equipo en el chasis. */
+  .drawer {
+    width: 340px;
+    flex-shrink: 0;
+    background: var(--plate);
+    border-left: 1px solid var(--rule);
+    overflow-y: auto;
+    display: none;
+  }
+  .drawer.on { display: block; }
+
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .drawer-head .lbl { flex: 1; }
+  .x-btn { background: none; border: none; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 6px; }
+  .x-btn:hover { color: var(--ink); }
+
+  .plate-body { padding: 16px; }
+
+  .nameplate {
+    position: relative;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r);
+    padding: 16px 14px 12px;
+    background: var(--paper);
+  }
+  /* Remaches: los 4 puntos que sujetan la placa al equipo. */
+  .nameplate::before, .nameplate::after,
+  .nameplate > .rivet-l, .nameplate > .rivet-r {
+    content: '';
+    position: absolute;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--muted);
+    opacity: .5;
+  }
+  .nameplate::before { top: 5px; left: 5px; }
+  .nameplate::after  { top: 5px; right: 5px; }
+  .nameplate > .rivet-l { bottom: 5px; left: 5px; }
+  .nameplate > .rivet-r { bottom: 5px; right: 5px; }
+
+  .np-brand {
+    font-family: var(--cond);
+    font-size: 19px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.15;
+  }
+  .np-model { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+  .np-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; }
+  .np-grid .full { grid-column: 1 / -1; }
+  .np-cell .lbl { display: block; font-size: 10px; margin-bottom: 1px; }
+  .np-cell .v { font-family: var(--mono); font-size: 12.5px; word-break: break-word; }
+  .np-cell .v.na { color: var(--muted); }
+
+  .np-rule { border: none; border-top: 1px solid var(--rule); margin: 12px 0; }
+
+  .drawer-sect { margin-top: 22px; }
+  .drawer-sect > .lbl { display: block; margin-bottom: 9px; }
+
+  .hist { display: flex; flex-direction: column; gap: 1px; }
+  .hist-row {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 12.5px;
+  }
+  .hist-row .d { font-family: var(--mono); font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
+  .hist-row .t { flex: 1; }
+  .hist-row .s { font-family: var(--cond); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .hist-none { font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+  .drawer-acts { display: flex; gap: 8px; margin-top: 22px; }
+  .drawer-acts .btn { flex: 1; }
+
+  /* =================== MODAL =================== */
+  .veil {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 37, 69, .35);
+    display: none;
+    place-items: center;
+    padding: 24px;
+    z-index: 50;
+  }
+  .veil.on { display: grid; }
+
+  .modal {
+    background: var(--plate);
+    border-radius: var(--r);
+    width: 100%;
+    max-width: 620px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(11, 37, 69, .18);
+  }
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+  }
+  .modal-head h3 { font-family: var(--cond); font-size: 17px; text-transform: uppercase; flex: 1; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .modal-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .grid2 .full { grid-column: 1 / -1; }
+
+  fieldset { border: none; margin-bottom: 6px; }
+  legend {
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--signal-deep);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    width: 100%;
+  }
+  .req { color: var(--down); }
+
+  .confirm-txt { padding: 20px; font-size: 13.5px; }
+  .confirm-txt b { font-family: var(--mono); }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: var(--r);
+    font-size: 13px;
+    z-index: 90;
+    opacity: 0;
+    transition: transform .2s, opacity .2s;
+    pointer-events: none;
+    max-width: 90vw;
+  }
+  .toast.on { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.bad { background: var(--down); }
+
+  .loading { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 900px) {
+    .shell { flex-direction: column; }
+    aside.rail { width: auto; border-right: none; border-bottom: 1px solid var(--rule); }
+    .rail .states { flex-direction: row; flex-wrap: wrap; }
+    .state-btn { width: auto; }
+    .state-btn .n { margin-left: 4px; }
+    .drawer { width: auto; border-left: none; border-top: 1px solid var(--rule); }
+    .grid2 { grid-template-columns: 1fr; }
+    .search { max-width: none; margin-left: 0; flex-basis: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <form class="login-plate" id="loginForm">
+    <div class="brand">Clima<span>Tech</span></div>
+    <div class="brand-sub">Inventario de equipos</div>
+
+    <div id="loginErr"></div>
+
+    <div class="field">
+      <label class="lbl" for="lEmail">Correo</label>
+      <input type="email" id="lEmail" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label class="lbl" for="lPass">Contraseña</label>
+      <input type="password" id="lPass" autocomplete="current-password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block" id="lBtn">Entrar</button>
+
+    <div class="hint">
+      Modo demo — datos estáticos, sin backend. Entra con <code>ana@climapro.test</code> y cualquier contraseña.
+    </div>
+  </form>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <header class="top">
+    <div class="brand">Clima<span>Tech</span></div>
+    <div class="who">
+      <span><b id="uName"></b> · <span id="uEmpresa"></span></span>
+      <span class="rol-tag" id="uRol"></span>
+      <button class="link" id="outBtn">Salir</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="rail">
+      <h2>Filtros</h2>
+
+      <div class="field">
+        <label class="lbl" for="fCat">Categoría</label>
+        <select id="fCat"><option value="">Todas</option></select>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="fSede">Sede</label>
+        <select id="fSede"><option value="">Todas</option></select>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="fZona">Zona</label>
+        <select id="fZona" disabled><option value="">Todas</option></select>
+      </div>
+
+      <div class="field">
+        <span class="lbl" style="display:block;margin-bottom:5px">Estado</span>
+        <div class="states" id="fStates"></div>
+      </div>
+
+      <button class="btn btn-ghost btn-block" id="clearBtn" style="margin-top:6px">Limpiar filtros</button>
+    </aside>
+
+    <main class="work">
+      <div class="work-head">
+        <h1>Equipos</h1>
+        <span class="count" id="total"></span>
+        <div class="search field" style="margin:0">
+          <input type="text" id="fSearch" placeholder="Buscar por código, marca o modelo…">
+        </div>
+        <button class="btn btn-primary" id="newBtn">+ Registrar equipo</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Equipo</th>
+              <th>Categoría</th>
+              <th>Ubicación</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="tableMsg"></div>
+      </div>
+
+      <div class="pager">
+        <button class="btn btn-ghost" id="prevBtn">← Anterior</button>
+        <span id="pageInfo"></span>
+        <button class="btn btn-ghost" id="nextBtn">Siguiente →</button>
+      </div>
+    </main>
+
+    <!-- Placa de datos técnicos -->
+    <aside class="drawer" id="drawer">
+      <div class="drawer-head">
+        <span class="lbl">Placa de datos</span>
+        <button class="x-btn" id="closeDrawer" aria-label="Cerrar">×</button>
+      </div>
+      <div class="plate-body" id="drawerBody"></div>
+    </aside>
+  </div>
+</div>
+
+<!-- ============ MODAL FORM ============ -->
+<div class="veil" id="formVeil">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <div class="modal-head">
+      <h3 id="formTitle">Registrar equipo</h3>
+      <button class="x-btn" id="closeForm" aria-label="Cerrar">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="formErr"></div>
+      <form id="equipoForm">
+        <fieldset>
+          <legend>Identificación</legend>
+          <div class="grid2">
+            <div class="field">
+              <label class="lbl" for="eCodigo">Código interno</label>
+              <input type="text" id="eCodigo" name="codigo_interno" placeholder="AC-001">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eSerie">Número de serie</label>
+              <input type="text" id="eSerie" name="num_serie">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eMarca">Marca</label>
+              <input type="text" id="eMarca" placeholder="York">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eModelo">Modelo</label>
+              <input type="text" id="eModelo" placeholder="YK-500">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Clasificación y ubicación</legend>
+          <div class="grid2">
+            <div class="field">
+              <label class="lbl" for="eCat">Categoría <span class="req">*</span></label>
+              <select id="eCat" required></select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="eEstado">Estado</label>
+              <select id="eEstado"></select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="eSede">Sede</label>
+              <select id="eSede"><option value="">Sin asignar</option></select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="eZona">Zona</label>
+              <select id="eZona" disabled><option value="">Sin asignar</option></select>
+            </div>
+            <div class="field full">
+              <label class="lbl" for="eResp">Responsable de área</label>
+              <input type="text" id="eResp">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Ficha técnica</legend>
+          <div class="grid2">
+            <div class="field">
+              <label class="lbl" for="eCap">Capacidad</label>
+              <input type="text" id="eCap" placeholder="5 TR">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eVolt">Voltaje</label>
+              <input type="text" id="eVolt" placeholder="220V">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eRefri">Refrigerante</label>
+              <input type="text" id="eRefri" placeholder="R-410A">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eVida">Vida útil (meses)</label>
+              <input type="number" id="eVida" min="0">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eInst">Fecha de instalación</label>
+              <input type="date" id="eInst">
+            </div>
+            <div class="field">
+              <label class="lbl" for="eReemp">Reemplazo estimado</label>
+              <input type="date" id="eReemp">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="cancelForm">Cancelar</button>
+      <button class="btn btn-primary" id="saveBtn">Guardar equipo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL CONFIRM ============ -->
+<div class="veil" id="delVeil">
+  <div class="modal" style="max-width:420px" role="dialog" aria-modal="true">
+    <div class="modal-head"><h3>Eliminar equipo</h3></div>
+    <div class="confirm-txt" id="delTxt"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="cancelDel">Cancelar</button>
+      <button class="btn btn-danger" id="okDel">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   MODO DEMO — DATOS ESTÁTICOS
+   ---------------------------------------------------------------------
+   Esta versión del panel NO llama al backend. Cada función que en la
+   versión real haría fetch() a la API está marcada con un comentario
+   "CONEXIÓN REAL" mostrando el método, la ruta exacta (de tu doc de
+   endpoints) y el fetch que iría ahí. Cuando quieras volver a la versión
+   conectada, usa public/index.html - es el mismo panel, ya cableado.
+   ===================================================================== */
+
+const API = '/api/v1';
+const ESTADOS = ['Operativo', 'En mantenimiento', 'Fuera de servicio', 'De baja'];
+
+/* ---------------------------------------------------------------------
+   BASE DE DATOS FALSA
+   Refleja el modelo real (EMPRESAS, USUARIOS, CATEGORIAS_EQUIPO, SEDES,
+   ZONAS, EQUIPOS, MANTENIMIENTOS) para que el shape de los datos sea
+   idéntico al que devolverá la API de verdad.
+--------------------------------------------------------------------- */
+const DB = {
+  usuario: { id: 1, nombre: 'Ana Torres', email: 'ana@climapro.test', rol: 'admin_empresa', empresa: 'ClimaPro Bogotá' },
+
+  categorias: [
+    { id: 1, nombre: 'Aire Acondicionado' },
+    { id: 2, nombre: 'Generador' },
+    { id: 3, nombre: 'Bomba' },
+    { id: 4, nombre: 'Caldera' },
+    { id: 5, nombre: 'Ascensor' },
+  ],
+
+  sedes: [
+    { id: 1, nombre: 'Sede Principal', ciudad: 'Bogotá' },
+    { id: 2, nombre: 'Bodega Norte', ciudad: 'Bogotá' },
+  ],
+
+  zonas: [
+    { id: 1, sede_id: 1, nombre: 'Piso 3 - Oficinas' },
+    { id: 2, sede_id: 1, nombre: 'Sótano - Cuarto técnico' },
+    { id: 3, sede_id: 1, nombre: 'Terraza' },
+    { id: 4, sede_id: 2, nombre: 'Nave A' },
+    { id: 5, sede_id: 2, nombre: 'Nave B' },
+  ],
+
+  equipos: [
+    { id: 1, codigoInterno: 'AC-001', marca: 'York', modelo: 'YK-500', categoriaId: 1, zonaId: 1, estado: 'Operativo',
+      numSerie: 'SN-88213', capacidad: '5 TR', voltaje: '220V', refrigerante: 'R-410A', vidaUtilMeses: 96,
+      fechaInstalacion: '2022-03-14', fechaEstimadaReemplazo: '2030-03-14', responsableArea: 'Juan Pérez' },
+    { id: 2, codigoInterno: 'AC-002', marca: 'Carrier', modelo: 'CR-300', categoriaId: 1, zonaId: 3, estado: 'En mantenimiento',
+      numSerie: 'SN-88214', capacidad: '3 TR', voltaje: '220V', refrigerante: 'R-32', vidaUtilMeses: 96,
+      fechaInstalacion: '2021-11-02', fechaEstimadaReemplazo: '2029-11-02', responsableArea: 'Juan Pérez' },
+    { id: 3, codigoInterno: 'GEN-001', marca: 'Cummins', modelo: 'C150', categoriaId: 2, zonaId: 2, estado: 'Operativo',
+      numSerie: 'SN-55019', capacidad: '150 kVA', voltaje: '440V', refrigerante: null, vidaUtilMeses: 180,
+      fechaInstalacion: '2019-06-20', fechaEstimadaReemplazo: '2034-06-20', responsableArea: 'María Gómez' },
+    { id: 4, codigoInterno: 'BOM-004', marca: 'Grundfos', modelo: 'CR15', categoriaId: 3, zonaId: 2, estado: 'Fuera de servicio',
+      numSerie: 'SN-77102', capacidad: '15 m³/h', voltaje: '220V', refrigerante: null, vidaUtilMeses: 72,
+      fechaInstalacion: '2020-01-10', fechaEstimadaReemplazo: '2026-01-10', responsableArea: 'María Gómez' },
+    { id: 5, codigoInterno: 'CAL-002', marca: 'Bosch', modelo: 'BX-90', categoriaId: 4, zonaId: 4, estado: 'Operativo',
+      numSerie: 'SN-90341', capacidad: '90 kW', voltaje: '220V', refrigerante: null, vidaUtilMeses: 120,
+      fechaInstalacion: '2023-05-08', fechaEstimadaReemplazo: '2033-05-08', responsableArea: 'Carlos Ruiz' },
+    { id: 6, codigoInterno: 'AC-010', marca: 'LG', modelo: 'Multi-V5', categoriaId: 1, zonaId: 5, estado: 'De baja',
+      numSerie: 'SN-40021', capacidad: '8 TR', voltaje: '220V', refrigerante: 'R-410A', vidaUtilMeses: 96,
+      fechaInstalacion: '2016-02-01', fechaEstimadaReemplazo: '2024-02-01', responsableArea: 'Carlos Ruiz' },
+  ],
+
+  mantenimientosPorEquipo: {
+    1: [
+      { fechaEjecucion: '2026-06-02', tipoMantenimiento: 'preventivo', estado: 'Completado' },
+      { fechaEjecucion: '2026-03-01', tipoMantenimiento: 'preventivo', estado: 'Completado' },
+    ],
+    2: [
+      { fechaProgramada: '2026-07-20', tipoMantenimiento: 'correctivo', estado: 'En proceso' },
+    ],
+    4: [
+      { fechaEjecucion: '2026-05-15', tipoMantenimiento: 'correctivo', estado: 'Completado' },
+    ],
+  },
+};
+
+// Enriquecemos equipos con sus relaciones anidadas (así el shape queda
+// igual al `include: { categoria, zona: { sede } }` que arma Prisma).
+DB.equipos.forEach((e) => {
+  e.categoria = DB.categorias.find((c) => c.id === e.categoriaId) || null;
+  const zona = DB.zonas.find((z) => z.id === e.zonaId) || null;
+  e.zona = zona ? { ...zona, sede: DB.sedes.find((s) => s.id === zona.sede_id) } : null;
+});
+
+function delay(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+const state = {
+  page: 1,
+  perPage: 20,
+  filters: { search: '', status: '', categoria_id: '', sede_id: '', zona_id: '' },
+  rows: [],
+  total: 0,
+  selectedId: null,
+  editingId: null,
+  deletingId: null,
+  nextId: 100,
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Utilidades (iguales a la versión conectada) ---------- */
+function esc(s) {
+  if (s === null || s === undefined || s === '') return '';
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fecha(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return isNaN(d) ? null : d.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+function slug(s) { return String(s).replace(/\s+/g, '-'); }
+function toast(msg, bad) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast on' + (bad ? ' bad' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+function puedeEditar() { return ['admin_empresa', 'supervisor'].includes(DB.usuario.rol); }
+function puedeBorrar() { return DB.usuario.rol === 'admin_empresa'; }
+
+/* ---------------------------------------------------------------------
+   LOGIN
+   CONEXIÓN REAL: POST /api/v1/auth/login  { email, password }
+     -> { access_token, refresh_token, usuario }
+   El token se guarda y de ahí en adelante viaja como
+   Authorization: Bearer <token> en cada request (ver api() en la
+   versión conectada de public/index.html).
+--------------------------------------------------------------------- */
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('lBtn');
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+  $('loginErr').innerHTML = '';
+
+  await delay(400); // simula la latencia de red
+
+  const email = $('lEmail').value.trim();
+  const pass = $('lPass').value;
+
+  // En la demo, cualquier password sirve con el correo de prueba.
+  if (email !== DB.usuario.email) {
+    $('loginErr').innerHTML = '<div class="msg msg-error">Credenciales inválidas (usa ' + DB.usuario.email + ')</div>';
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+
+  await boot();
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+});
+
+function logout() {
+  $('app').classList.remove('on');
+  $('login').style.display = 'grid';
+}
+$('outBtn').addEventListener('click', logout);
+
+/* ---------------------------------------------------------------------
+   ARRANQUE
+   CONEXIÓN REAL: GET /api/v1/me -> datos del usuario autenticado
+--------------------------------------------------------------------- */
+async function boot() {
+  $('login').style.display = 'none';
+  $('app').classList.add('on');
+
+  $('uName').textContent = DB.usuario.nombre;
+  $('uEmpresa').textContent = DB.usuario.empresa;
+  $('uRol').textContent = DB.usuario.rol.replace('_', ' ');
+  $('newBtn').style.display = puedeEditar() ? '' : 'none';
+
+  renderStates();
+  loadCategorias();
+  loadSedes();
+  await loadEquipos();
+}
+
+// CONEXIÓN REAL: GET /api/v1/categorias-equipos
+function loadCategorias() {
+  const opts = DB.categorias.map((c) => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+  $('fCat').innerHTML = '<option value="">Todas</option>' + opts;
+  $('eCat').innerHTML = '<option value="">Selecciona…</option>' + opts;
+}
+
+// CONEXIÓN REAL: GET /api/v1/sedes
+function loadSedes() {
+  const opts = DB.sedes.map((s) => '<option value="' + s.id + '">' + esc(s.nombre) + '</option>').join('');
+  $('fSede').innerHTML = '<option value="">Todas</option>' + opts;
+  $('eSede').innerHTML = '<option value="">Sin asignar</option>' + opts;
+}
+
+// CONEXIÓN REAL: GET /api/v1/sedes/:id/zonas
+function loadZonas(sedeId, selectEl, placeholder) {
+  if (!sedeId) {
+    selectEl.innerHTML = '<option value="">' + placeholder + '</option>';
+    selectEl.disabled = true;
+    return;
+  }
+  const zonas = DB.zonas.filter((z) => z.sede_id === Number(sedeId));
+  selectEl.innerHTML = '<option value="">' + placeholder + '</option>' +
+    zonas.map((z) => '<option value="' + z.id + '">' + esc(z.nombre) + '</option>').join('');
+  selectEl.disabled = false;
+}
+
+/* ---------- Filtros (misma UI, sin red) ---------- */
+function renderStates() {
+  const items = [{ v: '', l: 'Todos', c: 'todos' }].concat(ESTADOS.map((e) => ({ v: e, l: e, c: slug(e) })));
+  $('fStates').innerHTML = items.map((i) =>
+    '<button class="state-btn" data-v="' + esc(i.v) + '" aria-pressed="' + (state.filters.status === i.v) + '">' +
+      '<span class="swatch sw-' + i.c + '"></span><span>' + esc(i.l) + '</span><span class="n" data-n="' + esc(i.v) + '"></span>' +
+    '</button>'
+  ).join('');
+  $('fStates').querySelectorAll('.state-btn').forEach((b) => {
+    b.addEventListener('click', () => {
+      state.filters.status = b.dataset.v;
+      state.page = 1;
+      $('fStates').querySelectorAll('.state-btn').forEach((x) => x.setAttribute('aria-pressed', x === b));
+      loadEquipos();
+    });
+  });
+}
+
+let searchTimer;
+$('fSearch').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.filters.search = e.target.value.trim(); state.page = 1; loadEquipos(); }, 300);
+});
+$('fCat').addEventListener('change', (e) => { state.filters.categoria_id = e.target.value; state.page = 1; loadEquipos(); });
+$('fSede').addEventListener('change', (e) => {
+  state.filters.sede_id = e.target.value;
+  state.filters.zona_id = '';
+  state.page = 1;
+  loadZonas(e.target.value, $('fZona'), 'Todas');
+  loadEquipos();
+});
+$('fZona').addEventListener('change', (e) => { state.filters.zona_id = e.target.value; state.page = 1; loadEquipos(); });
+$('clearBtn').addEventListener('click', () => {
+  state.filters = { search: '', status: '', categoria_id: '', sede_id: '', zona_id: '' };
+  state.page = 1;
+  $('fSearch').value = ''; $('fCat').value = ''; $('fSede').value = '';
+  loadZonas('', $('fZona'), 'Todas');
+  renderStates();
+  loadEquipos();
+});
+
+/* ---------------------------------------------------------------------
+   LISTADO
+   CONEXIÓN REAL:
+   GET /api/v1/equipos?search=&status=&categoria_id=&sede_id=&zona_id=&page=&per_page=
+     -> { items, total, page, per_page }
+   Acá se reemplaza ese fetch por un filtro en memoria sobre DB.equipos.
+--------------------------------------------------------------------- */
+async function loadEquipos() {
+  $('tableMsg').innerHTML = '<div class="loading">Cargando equipos…</div>';
+  await delay(200);
+
+  const f = state.filters;
+  let items = DB.equipos.filter((e) => {
+    if (f.status && e.estado !== f.status) return false;
+    if (f.categoria_id && e.categoriaId !== Number(f.categoria_id)) return false;
+    if (f.zona_id && e.zonaId !== Number(f.zona_id)) return false;
+    if (f.sede_id && (!e.zona || e.zona.sede_id !== Number(f.sede_id))) return false;
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      const hay = [e.marca, e.modelo, e.codigoInterno].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  state.total = items.length;
+  const start = (state.page - 1) * state.perPage;
+  state.rows = items.slice(start, start + state.perPage);
+  renderTable();
+}
+
+function renderTable() {
+  $('tableMsg').innerHTML = '';
+  $('total').textContent = state.total + (state.total === 1 ? ' equipo' : ' equipos');
+
+  if (!state.rows.length) {
+    const filtrando = Object.values(state.filters).some(Boolean);
+    $('tableMsg').innerHTML = '<div class="empty"><p>' +
+      (filtrando ? 'Ningún equipo coincide con estos filtros.' : 'Todavía no hay equipos registrados.') + '</p>' +
+      (filtrando ? '<button class="btn btn-ghost" onclick="document.getElementById(\'clearBtn\').click()">Limpiar filtros</button>' : '') +
+      '</div>';
+    $('tbody').innerHTML = '';
+  } else {
+    $('tbody').innerHTML = state.rows.map((e) => {
+      const sede = e.zona && e.zona.sede ? e.zona.sede.nombre : null;
+      const loc = [sede, e.zona ? e.zona.nombre : null].filter(Boolean).join(' · ');
+      return '<tr data-id="' + e.id + '" aria-selected="' + (state.selectedId === e.id) + '">' +
+        '<td class="cell-code">' + (esc(e.codigoInterno) || '<span style="color:var(--muted)">—</span>') + '</td>' +
+        '<td class="cell-name"><b>' + (esc(e.marca) || 'Sin marca') + '</b><small>' + (esc(e.modelo) || '—') + '</small></td>' +
+        '<td>' + (e.categoria ? esc(e.categoria.nombre) : '—') + '</td>' +
+        '<td class="cell-loc">' + (esc(loc) || 'Sin ubicar') + '</td>' +
+        '<td><span class="state-pill"><span class="swatch sw-' + slug(e.estado || 'De baja') + '"></span>' + esc(e.estado || '—') + '</span></td>' +
+        '<td><div class="row-acts">' +
+          (puedeEditar() ? '<button class="icon-btn" data-act="edit" data-id="' + e.id + '">Editar</button>' : '') +
+          (puedeBorrar() ? '<button class="icon-btn del" data-act="del" data-id="' + e.id + '">Eliminar</button>' : '') +
+        '</div></td></tr>';
+    }).join('');
+  }
+
+  const conteo = {};
+  state.rows.forEach((e) => { conteo[e.estado] = (conteo[e.estado] || 0) + 1; });
+  $('fStates').querySelectorAll('[data-n]').forEach((el) => {
+    const v = el.dataset.n;
+    el.textContent = v === '' ? (state.rows.length || '') : (conteo[v] || '');
+  });
+
+  const desde = state.total === 0 ? 0 : (state.page - 1) * state.perPage + 1;
+  const hasta = Math.min(state.page * state.perPage, state.total);
+  $('pageInfo').textContent = state.total ? desde + '–' + hasta + ' de ' + state.total : '';
+  $('prevBtn').disabled = state.page <= 1;
+  $('nextBtn').disabled = state.page * state.perPage >= state.total;
+}
+
+$('tbody').addEventListener('click', (e) => {
+  const act = e.target.closest('[data-act]');
+  if (act) {
+    e.stopPropagation();
+    if (act.dataset.act === 'edit') openForm(Number(act.dataset.id));
+    if (act.dataset.act === 'del') askDelete(Number(act.dataset.id));
+    return;
+  }
+  const tr = e.target.closest('tr[data-id]');
+  if (tr) openDrawer(Number(tr.dataset.id));
+});
+$('prevBtn').addEventListener('click', () => { if (state.page > 1) { state.page--; loadEquipos(); } });
+$('nextBtn').addEventListener('click', () => { state.page++; loadEquipos(); });
+
+/* ---------------------------------------------------------------------
+   PLACA DE DATOS (detalle)
+   CONEXIÓN REAL:
+   GET /api/v1/equipos/:id                        -> detalle del equipo
+   GET /api/v1/equipos/:id/mantenimientos?per_page=6 -> historial
+--------------------------------------------------------------------- */
+async function openDrawer(id) {
+  state.selectedId = id;
+  $('drawer').classList.add('on');
+  $('drawerBody').innerHTML = '<div class="loading">Cargando…</div>';
+  document.querySelectorAll('#tbody tr').forEach((tr) => tr.setAttribute('aria-selected', Number(tr.dataset.id) === id));
+
+  await delay(150);
+  const eq = DB.equipos.find((e) => e.id === id);
+  const hist = DB.mantenimientosPorEquipo[id] || [];
+  renderDrawer(eq, hist);
+}
+
+function cell(label, value, full) {
+  const v = value === null || value === undefined || value === '' ? null : value;
+  return '<div class="np-cell' + (full ? ' full' : '') + '"><span class="lbl">' + esc(label) + '</span>' +
+    '<span class="v' + (v ? '' : ' na') + '">' + (v ? esc(v) : '—') + '</span></div>';
+}
+
+function renderDrawer(e, hist) {
+  const sede = e.zona && e.zona.sede ? e.zona.sede.nombre : null;
+  $('drawerBody').innerHTML =
+    '<div class="nameplate"><span class="rivet-l"></span><span class="rivet-r"></span>' +
+      '<div class="np-brand">' + (esc(e.marca) || 'Sin marca') + '</div>' +
+      '<div class="np-model">' + (esc(e.modelo) || 'modelo no registrado') + '</div>' +
+      '<div class="np-grid">' +
+        cell('Código interno', e.codigoInterno) + cell('N.º de serie', e.numSerie) +
+        cell('Categoría', e.categoria ? e.categoria.nombre : null) + cell('Estado', e.estado) +
+      '</div><hr class="np-rule"><div class="np-grid">' +
+        cell('Capacidad', e.capacidad) + cell('Voltaje', e.voltaje) +
+        cell('Refrigerante', e.refrigerante) + cell('Vida útil', e.vidaUtilMeses ? e.vidaUtilMeses + ' meses' : null) +
+      '</div><hr class="np-rule"><div class="np-grid">' +
+        cell('Sede', sede) + cell('Zona', e.zona ? e.zona.nombre : null) +
+        cell('Instalado', fecha(e.fechaInstalacion)) + cell('Reemplazo est.', fecha(e.fechaEstimadaReemplazo)) +
+        cell('Responsable', e.responsableArea, true) +
+      '</div></div>' +
+    '<div class="drawer-sect"><span class="lbl">Últimos mantenimientos</span>' +
+      (hist.length
+        ? '<div class="hist">' + hist.map((m) =>
+            '<div class="hist-row"><span class="d">' + (fecha(m.fechaEjecucion || m.fechaProgramada) || '—') + '</span>' +
+            '<span class="t">' + esc(m.tipoMantenimiento || '—') + '</span><span class="s">' + esc(m.estado || '') + '</span></div>').join('')
+          + '</div>'
+        : '<p class="hist-none">Este equipo no tiene mantenimientos registrados.</p>') +
+    '</div>' +
+    (puedeEditar()
+      ? '<div class="drawer-acts"><button class="btn btn-ghost" onclick="openForm(' + e.id + ')">Editar</button>' +
+          (puedeBorrar() ? '<button class="btn btn-danger" onclick="askDelete(' + e.id + ')">Eliminar</button>' : '') + '</div>'
+      : '');
+}
+
+$('closeDrawer').addEventListener('click', () => {
+  $('drawer').classList.remove('on');
+  state.selectedId = null;
+  document.querySelectorAll('#tbody tr').forEach((tr) => tr.setAttribute('aria-selected', 'false'));
+});
+
+/* ---------------------------------------------------------------------
+   FORMULARIO (crear / editar)
+   CONEXIÓN REAL:
+   POST /api/v1/equipos        -> crear
+   PUT  /api/v1/equipos/:id    -> editar
+   Nota: estos dos endpoints NO estaban en tu doc original (solo había
+   GET para equipos) - se agregan del lado del backend siguiendo el
+   mismo patrón dual local/Automate que ya tiene /equipos.
+--------------------------------------------------------------------- */
+$('eEstado').innerHTML = ESTADOS.map((e) => '<option value="' + e + '">' + e + '</option>').join('');
+$('eSede').addEventListener('change', (e) => loadZonas(e.target.value, $('eZona'), 'Sin asignar'));
+
+async function openForm(id) {
+  state.editingId = id || null;
+  $('formErr').innerHTML = '';
+  $('equipoForm').reset();
+  $('formTitle').textContent = id ? 'Editar equipo' : 'Registrar equipo';
+  $('formVeil').classList.add('on');
+
+  if (!id) { loadZonas('', $('eZona'), 'Sin asignar'); $('eCodigo').focus(); return; }
+
+  const e = DB.equipos.find((x) => x.id === id);
+  $('eCodigo').value = e.codigoInterno || '';
+  $('eSerie').value = e.numSerie || '';
+  $('eMarca').value = e.marca || '';
+  $('eModelo').value = e.modelo || '';
+  $('eCat').value = e.categoriaId || '';
+  $('eEstado').value = e.estado || 'Operativo';
+  $('eResp').value = e.responsableArea || '';
+  $('eCap').value = e.capacidad || '';
+  $('eVolt').value = e.voltaje || '';
+  $('eRefri').value = e.refrigerante || '';
+  $('eVida').value = e.vidaUtilMeses || '';
+  $('eInst').value = e.fechaInstalacion || '';
+  $('eReemp').value = e.fechaEstimadaReemplazo || '';
+
+  const sedeId = e.zona && e.zona.sede ? e.zona.sede.id : '';
+  $('eSede').value = sedeId || '';
+  loadZonas(sedeId, $('eZona'), 'Sin asignar');
+  $('eZona').value = e.zonaId || '';
+}
+window.openForm = openForm;
+
+function closeForm() { $('formVeil').classList.remove('on'); state.editingId = null; }
+$('closeForm').addEventListener('click', closeForm);
+$('cancelForm').addEventListener('click', closeForm);
+
+$('saveBtn').addEventListener('click', async () => {
+  const form = $('equipoForm');
+  if (!form.reportValidity()) return;
+
+  const btn = $('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+  await delay(300);
+
+  const categoria = DB.categorias.find((c) => c.id === Number($('eCat').value)) || null;
+  const zona = $('eZona').value ? DB.zonas.find((z) => z.id === Number($('eZona').value)) : null;
+
+  const payload = {
+    codigoInterno: $('eCodigo').value.trim(),
+    numSerie: $('eSerie').value.trim(),
+    marca: $('eMarca').value.trim(),
+    modelo: $('eModelo').value.trim(),
+    categoriaId: Number($('eCat').value),
+    categoria,
+    zonaId: zona ? zona.id : null,
+    zona: zona ? { ...zona, sede: DB.sedes.find((s) => s.id === zona.sede_id) } : null,
+    estado: $('eEstado').value,
+    responsableArea: $('eResp').value.trim(),
+    capacidad: $('eCap').value.trim(),
+    voltaje: $('eVolt').value.trim(),
+    refrigerante: $('eRefri').value.trim(),
+    vidaUtilMeses: $('eVida').value ? Number($('eVida').value) : null,
+    fechaInstalacion: $('eInst').value || null,
+    fechaEstimadaReemplazo: $('eReemp').value || null,
+  };
+
+  if (state.editingId) {
+    const idx = DB.equipos.findIndex((e) => e.id === state.editingId);
+    DB.equipos[idx] = { ...DB.equipos[idx], ...payload };
+    toast('Equipo actualizado');
+    if (state.selectedId === state.editingId) openDrawer(state.editingId);
+  } else {
+    DB.equipos.push({ id: state.nextId++, ...payload });
+    toast('Equipo registrado');
+  }
+
+  closeForm();
+  loadEquipos();
+  btn.disabled = false;
+  btn.textContent = 'Guardar equipo';
+});
+
+/* ---------------------------------------------------------------------
+   ELIMINAR
+   CONEXIÓN REAL: DELETE /api/v1/equipos/:id
+--------------------------------------------------------------------- */
+function askDelete(id) {
+  const e = DB.equipos.find((r) => r.id === id);
+  state.deletingId = id;
+  const nombre = e ? [e.codigoInterno, e.marca, e.modelo].filter(Boolean).join(' · ') : '#' + id;
+  $('delTxt').innerHTML = 'Se eliminará <b>' + esc(nombre) + '</b> del inventario. Esta acción no se puede deshacer.';
+  $('delVeil').classList.add('on');
+}
+window.askDelete = askDelete;
+
+$('cancelDel').addEventListener('click', () => $('delVeil').classList.remove('on'));
+
+$('okDel').addEventListener('click', async () => {
+  const btn = $('okDel');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando…';
+  await delay(300);
+
+  DB.equipos = DB.equipos.filter((e) => e.id !== state.deletingId);
+  toast('Equipo eliminado');
+  if (state.selectedId === state.deletingId) { $('drawer').classList.remove('on'); state.selectedId = null; }
+  $('delVeil').classList.remove('on');
+  loadEquipos();
+
+  btn.disabled = false;
+  btn.textContent = 'Eliminar';
+});
+
+/* ---------- Teclado ---------- */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if ($('formVeil').classList.contains('on')) return closeForm();
+  if ($('delVeil').classList.contains('on')) return $('delVeil').classList.remove('on');
+  if ($('drawer').classList.contains('on')) return $('closeDrawer').click();
+});
+</script>
+</body>
+</html>
