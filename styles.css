@@ -524,95 +524,31 @@ ul{ list-style:none; }
     position: relative;
     border-radius: 10px;
     overflow: hidden;
-    height: 210px;
-    background:
-      radial-gradient(circle at 75% 30%, rgba(120,190,255,0.55), transparent 45%),
-      linear-gradient(200deg, #cf6a8f 0%, #2c3e6b 45%, #0e1830 100%);
+    height: 320px;
+    background: #0e1830;
     box-shadow: 0 20px 40px rgba(13,27,42,0.15);
   }
 
-  .section .video-card .dome{
-    position:absolute;
-    left: 8%;
-    bottom: 18%;
-    width: 46%;
-    height: 60%;
-    border-radius: 50% 50% 8px 8px / 70% 70% 8px 8px;
-    background:
-      radial-gradient(circle at 40% 30%, rgba(120,200,255,0.6), transparent 60%),
-      repeating-linear-gradient(115deg, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 2px, transparent 2px, transparent 10px),
-      linear-gradient(160deg, #4a5b7a, #1c2740);
-    box-shadow: 0 0 40px rgba(90,170,255,0.35);
-  }
-
-  .section .video-card .city-strip{
-    position:absolute;
-    left:0; right:0; bottom: 0;
-    height: 30%;
-    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.6));
-  }
-
-  .section .video-card .badge{
-    position:absolute;
-    left: 18%;
-    bottom: 30%;
-    background: linear-gradient(135deg,#e2117b,#a3105c);
-    color:#fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 3px;
-    letter-spacing: 0.5px;
-  }
-
-  .section .video-card .controls{
-    position:absolute;
-    left: 16px; right: 16px; bottom: 14px;
-    display:flex;
-    align-items:center;
-    justify-content: space-between;
-    z-index: 2;
-  }
-
-  .section .play-label{
-    display:flex;
-    align-items:center;
-    gap: 8px;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .section .play-label .circ{
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    display:flex; align-items:center; justify-content:center;
-    font-size: 9px;
-  }
-
-  .section .icon-btns{
-    display:flex; gap: 10px;
-  }
-  .section .icon-btns span{
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.35);
-    display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size: 11px;
+  .section .video-card__embed{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
   }
 
   .section .top-copy h1{
     font-size: 33px;
-    font-weight: 600;
+    font-weight: 200;
     line-height: 1.25;
     margin-bottom: 18px;
     letter-spacing: -0.3px;
-    color: rgba(22,33,44,0.45);
+    color: #000;
   }
 
   .section .top-copy h1 .dark{
-    color: var(--ink);
-    font-weight: 700;
+    color: #000;
+    font-weight: 500;
   }
 
   .section .top-copy p{
