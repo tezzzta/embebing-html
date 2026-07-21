@@ -121,19 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     gap: 20,
   });
 
-  // Reveal de las cards al hacer scroll hasta la sección
-  gsap.from('.event-card', {
-    y: 40,
-    opacity: 0,
-    duration: 0.7,
-    stagger: 0.08,
-    ease: 'power3.out',
-    scrollTrigger: {
-      trigger: '.experiencias',
-      start: 'top 75%',
-    }
-  });
-
   /* ------------------------------------------------------------
      Expansión de tarjeta (hover en desktop / click en touch)
      El crecimiento de ancho (1.5x) ya lo hace el CSS con
