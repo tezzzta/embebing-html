@@ -1280,13 +1280,6 @@ ul{ list-style:none; }
   box-shadow: 0 24px 48px rgba(13, 27, 42, 0.35);
 }
 
-/* Mientras una tarjeta está activa/hover, las demás se atenúan un poco
-   para reforzar el foco visual (opcional — quítalo si lo prefieres parejo) */
-.experiencias__track:has(.event-card:hover) .event-card:not(:hover),
-.experiencias__track:has(.event-card--active) .event-card:not(.event-card--active) {
-  opacity: 0.7;
-}
-
 .event-card__tag {
   position: absolute;
   top: 16px;
@@ -1319,6 +1312,12 @@ ul{ list-style:none; }
   inset: 0;
   background: linear-gradient(to top, rgba(13,27,42,0.95) 0%, rgba(13,27,42,0.55) 40%, rgba(13,27,42,0.05) 65%);
   z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.event-card:hover .event-card__gradient,
+.event-card--active .event-card__gradient {
+  opacity: 0.45;
 }
 
 .event-card__date {
@@ -1326,13 +1325,15 @@ ul{ list-style:none; }
   bottom: 128px;
   left: 16px;
   z-index: 2;
-  background: transparent;
+  background: rgba(13,27,42,0.35);
+  backdrop-filter: blur(2px);
   color: #fff;
    border: 2px solid #ffffffa9;
    border-radius: 4px;
   padding: 8px 6px;
   text-align: center;
   line-height: 1.1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.65);
 }
 
 .event-card__date-day {
@@ -1355,6 +1356,7 @@ ul{ list-style:none; }
   right: 0;
   z-index: 2;
   padding: 18px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.65);
 }
 
 .event-card__title {
@@ -1444,11 +1446,11 @@ ul{ list-style:none; }
 }
 
 .aliados__title {
-  font-size: 14.5px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-gray-text);
-  text-transform: uppercase;
+  letter-spacing: -0.2px;
+  color: var(--color-navy);
+  text-transform: none;
   margin: 0 0 36px;
 }
 
